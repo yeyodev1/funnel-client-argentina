@@ -74,6 +74,13 @@ export async function confirmAppointment(req: Request, res: Response): Promise<v
     })
   } catch (error: unknown) {
     console.error('Error al enviar los mensajes:', error);
-    res.status(500).send('Error interno del servidor');
+    res.status(500).send({
+      messages: [
+        {
+          type: 'to_user',
+          content: 'Este chatbot no esta disponible para tu número :(!'
+        }
+      ]
+    });
   }
 }
