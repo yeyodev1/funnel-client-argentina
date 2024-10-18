@@ -4,16 +4,16 @@ class APIBuilderBot {
   private baseUrl: string;
   private headers: object;
 
-  constructor() {
+  constructor(apiKey: string) {
       this.baseUrl = 'https://www.builderbot.cloud';
       this.headers = {
         'Content-Type': 'application/json',
-        'x-api-builderbot': process.env.BUILDERBOT_KEY
+        'x-api-builderbot': apiKey || process.env.BUILDERBOT_KEY
       };
   }
 
-  async sendMessage(messageContent: string, phoneNumber: string, botId: string): Promise<any> {
-    const url = `${this.baseUrl}/api/v2/${botId}/messages`;
+  async sendMessage(messageContent: string, phoneNumber: string, projectId: string): Promise<any> {
+    const url = `${this.baseUrl}/api/v2/${projectId}/messages`;
     const data = {
         messages: {
             content: messageContent
