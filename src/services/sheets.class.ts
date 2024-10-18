@@ -38,9 +38,12 @@ export default class GoogleSheetService {
     }
 
     const clientInfo = rows.map(row => ({
-      nombreCliente: row.get('nombre'),
-      correoElectronico: row.get('correo electronico'),
-      numeroWhatsapp: row.get('numero de whatsapp')
+      clientName: row.get('nombre'),
+      emailAddress: row.get('correo electronico') || null,
+      whatsappNumber: row.get('numero de whatsapp') || null,
+      chosenDate: row.get('fecha escogida') || null,
+      chosenTime: row.get('hora escogida') || null,
+      company: row.get('empresa') || null
     }));
 
     return clientInfo;
