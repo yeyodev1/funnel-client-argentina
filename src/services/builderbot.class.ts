@@ -12,7 +12,7 @@ export default class BuilderbotService {
     };
   }
 
-  generateWelcomeMessage(
+  private generateWelcomeMessage(
     clientName: string,
     chosenDate: string,
     chosenTime: string,
