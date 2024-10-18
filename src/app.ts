@@ -25,7 +25,7 @@ function createApp() {
   app.use(express.json());
 
   app.get('/', (_req, res: Response) => {
-    res.send('generate image is aliveee')
+    res.send('valagen api is aliveee')
   });
 
   routerApi(app, io);
