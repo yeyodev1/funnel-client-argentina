@@ -56,20 +56,21 @@ export async function confirmAppointment(req: Request, res: Response): Promise<v
       res.status(400).send('Debe proporcionar un nombre de cliente.');
     }
 
-    const sheetService = new GoogleSheetService();
-    
-    const { botKey, projectId } = await sheetService.getBotDataByClientName(clientName);
-
-    const builderbotService = new BuilderbotService(botKey)
     const googleSheetService = new GoogleSheetService()
 
-    await googleSheetService.confirmAttendanceByPhoneNumber(phoneNumber, clientName)
+    const { chosenDate, chosenTime } = await googleSheetService.confirmAttendanceByPhoneNumber(phoneNumber, clientName)
     
     res.status(HttpStatusCode.Ok).send({
-      messages: [{
-        type: 'to_user',
-        content: 'Tu cita ha sido confirmada para la fecha escogida'
-      }]
+      messages: [
+        {
+          type: 'to_user',
+          content: `Perfecto nos encontramos el próximo ${chosenDate} a las ${chosenTime}` 
+        },
+        {
+          type: 'to_user',
+          content: 'Le adjunto nuestras redes sociales y presentación corporativa para que pueda ir conociendo más de nuestra empresa, antes de la reunión'
+        }
+      ]
     })
   } catch (error: unknown) {
     console.error('Error al enviar los mensajes:', error);

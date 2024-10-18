@@ -75,10 +75,10 @@ export default class GoogleSheetService {
   }
   
 
-  async confirmAttendanceByPhoneNumber(phoneNumber: string, clientName: string): Promise<ClientInfo> {
+  async confirmAttendanceByPhoneNumber(phoneNumber: string, clientName: string): Promise<{ chosenDate: string, chosenTime: string }> {
     await this.loadDoc();
   
-    // Buscamos la hoja que coincide con el nombre del cliente
+    // Seleccionamos la hoja correcta basada en el nombre del cliente
     const sheet = this.doc.sheetsByIndex.find(sheet => 
       sheet.title.toLowerCase() === clientName.toLowerCase()
     );
@@ -87,30 +87,24 @@ export default class GoogleSheetService {
       throw new Error(`Hoja para el cliente ${clientName} no encontrada`);
     }
   
-    // Obtenemos las filas de la hoja correspondiente
     const rows: GoogleSpreadsheetRow[] = await sheet.getRows();
   
-    // Buscamos la fila con el número de WhatsApp correspondiente y actualizamos la asistencia
     for (const row of rows) {
       if (row.get('numero de whatsapp') === phoneNumber) {
-        // Actualizamos la asistencia en la columna "asistencia"
+        // Actualizamos la asistencia en la columna correspondiente
         row.set('asistencia', 'confirmada');
-        await row.save(); // Guardar los cambios en la hoja
+        await row.save(); // Guardar cambios en la hoja
   
-        // Retornamos la información del cliente para confirmar la cita
+        // Retornamos la información de la fecha y hora escogida
         return {
-          clientName: row.get('nombre'),
-          emailAddress: row.get('correo electronico') || null,
-          whatsappNumber: row.get('numero de whatsapp') || null,
-          chosenDate: row.get('fecha escogida') || null,
-          chosenTime: row.get('hora escogida') || null,
-          company: row.get('empresa') || null,
-          asistencia: row.get('asistencia') || null
+          chosenDate: row.get('fecha escogida'),
+          chosenTime: row.get('hora escogida'),
         };
       }
     }
   
-    throw new Error(`Cliente con número ${phoneNumber} no encontrado en la hoja de ${clientName}`);
+    throw new Error(`Cliente con número ${phoneNumber} no encontrado`);
   }
+  
   
 }
