@@ -5,4 +5,5 @@ export interface ClientInfo {
   chosenDate: string | null;
   chosenTime: string | null;
   company: string | null;
+  asistencia: string | null
 }

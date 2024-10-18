@@ -43,32 +43,37 @@ export default class GoogleSheetService {
 
   async findSheetByClientName(clientName: string): Promise<ClientInfo[]> {
     await this.loadDoc();
-
+  
     const sheet = this.doc.sheetsByIndex.find(sheet => 
       sheet.title.toLowerCase() === clientName.toLowerCase()
     );
-
+  
     if (!sheet) {
       throw new Error(`Hoja para el cliente ${clientName} no encontrada`);
     }
-
+  
     const rows: GoogleSpreadsheetRow[] = await sheet.getRows();
     
     if (rows.length === 0) {
       throw new Error(`No hay datos en la hoja para el cliente ${clientName}`);
     }
-
-    const clientInfo: ClientInfo[] = rows.map(row => ({
-      clientName: row.get('nombre'),
-      emailAddress: row.get('correo electronico') || null,
-      whatsappNumber: row.get('numero de whatsapp') || null,
-      chosenDate: row.get('fecha escogida') || null,
-      chosenTime: row.get('hora escogida') || null,
-      company: row.get('empresa') || null
-    }));
-
+  
+    // Filtrar solo los clientes que no han confirmado asistencia
+    const clientInfo: ClientInfo[] = rows
+      .filter(row => !row.get('asistencia') || row.get('asistencia') === null)
+      .map(row => ({
+        clientName: row.get('nombre'),
+        emailAddress: row.get('correo electronico') || null,
+        whatsappNumber: row.get('numero de whatsapp') || null,
+        chosenDate: row.get('fecha escogida') || null,
+        chosenTime: row.get('hora escogida') || null,
+        company: row.get('empresa') || null,
+        asistencia: row.get('asistencia') || null
+      }));
+  
     return clientInfo;
   }
+  
 
   async confirmAttendanceByPhoneNumber(phoneNumber: string, clientName: string): Promise<ClientInfo> {
     await this.loadDoc();
@@ -100,6 +105,7 @@ export default class GoogleSheetService {
           chosenDate: row.get('fecha escogida') || null,
           chosenTime: row.get('hora escogida') || null,
           company: row.get('empresa') || null,
+          asistencia: row.get('asistencia') || null
         };
       }
     }
