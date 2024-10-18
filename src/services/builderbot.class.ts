@@ -20,9 +20,11 @@ export default class BuilderbotService {
   ) {
     const firstPart = `Hola buen día ${clientName}, espero se encuentre muy bien, lo saluda el encargado de la gerencia Comercial de ${company}`;
     const secondPart = `Le escribo para confirmar su sesión de asesoría en desarrollo de Software o APP que agendó para el día de ${chosenDate} en el horario de ${chosenTime}.`;
+    const thirdPart = 'Confirma su asistencia?'
     return {
       firstPart,
-      secondPart
+      secondPart,
+      thirdPart
     }
   }
 
@@ -33,9 +35,9 @@ export default class BuilderbotService {
     chosenTime: string,
     projectId: string,
     company: string
-  ): Promise<{ firstMessageResponse: void; secondMessageResponse: void }> {
+  ): Promise<{ firstMessageResponse: void; secondMessageResponse: void, thirdMessageResponse: void}> {
 
-    const { firstPart, secondPart } = this.generateWelcomeMessage(
+    const { firstPart, secondPart, thirdPart } = this.generateWelcomeMessage(
       clientName,
       chosenDate,
       chosenTime,
@@ -47,9 +49,12 @@ export default class BuilderbotService {
 
       const secondMessageResponse = await this.sendMessage(secondPart, phoneNumber, projectId);
 
+      const thirdMessageResponse = await this.sendMessage(thirdPart, phoneNumber, projectId)
+
       return {
         firstMessageResponse,
-        secondMessageResponse
+        secondMessageResponse,
+        thirdMessageResponse
       };
     } catch (error) {
       console.error("Error al enviar los mensajes:", error);
