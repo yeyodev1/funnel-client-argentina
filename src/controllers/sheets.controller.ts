@@ -10,6 +10,7 @@ export async function sendMessages(req: Request, res: Response): Promise<void> {
 
     if (!clientName) {
       res.status(400).send('Debe proporcionar un nombre de cliente.');
+      return;
     }
 
     const sheetService = new GoogleSheetService();
@@ -21,22 +22,29 @@ export async function sendMessages(req: Request, res: Response): Promise<void> {
     const clientData = await sheetService.findSheetByClientName(clientName);
 
     for (const client of clientData) {
-      const { clientName, whatsappNumber, chosenDate, chosenTime, company} = client;
+      const { clientName, whatsappNumber, chosenDate, chosenTime, company } = client;
 
       if (!clientName || !whatsappNumber || !chosenDate || !chosenTime || !company) {
         console.warn(`Faltan datos para enviar el mensaje al cliente: ${clientName}`);
         continue; 
       }
+
+      const { country, convertedTime } = await sheetService.detectCountryAndConvertTime(whatsappNumber, chosenDate, chosenTime);
       
+      console.log(`Enviando mensaje a ${clientName} (${whatsappNumber}) del país ${country} con hora convertida: ${convertedTime}`);
+
+      console.log('converted time: ', convertedTime)
+
+
+      // Enviar el mensaje con la hora convertida
       await builderbotService.sendFirstMessage(
         clientName, 
         whatsappNumber, 
-        chosenDate, 
-        chosenTime, 
+        convertedTime.split(' ')[0],  // Fecha convertida
+        convertedTime.split(' ')[1],  // Hora convertida
         projectId, 
         company
       );
-
     }
 
     res.status(200).json({ message: 'Mensajes enviados correctamente', clientData });
@@ -45,6 +53,7 @@ export async function sendMessages(req: Request, res: Response): Promise<void> {
     res.status(500).send('Error interno del servidor');
   }
 }
+
 
 export async function confirmAppointment(req: Request, res: Response): Promise<void> {
   try {

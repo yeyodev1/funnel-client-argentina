@@ -1,6 +1,9 @@
 import { JWT } from "google-auth-library";
 import { GoogleSpreadsheet, GoogleSpreadsheetRow } from "google-spreadsheet";
 import { ClientInfo } from "../interfaces/sheet.interface";
+import moment from "moment-timezone";
+import parsePhoneNumberFromString from "libphonenumber-js";
+import { timezonesByCountry } from "../utils/timezonesByCountry";
 
 export default class GoogleSheetService {
   private doc: GoogleSpreadsheet;
@@ -58,7 +61,7 @@ export default class GoogleSheetService {
       throw new Error(`No hay datos en la hoja para el cliente ${clientName}`);
     }
   
-    // Filtrar solo los clientes que no han confirmado asistencia
+    
     const clientInfo: ClientInfo[] = rows
       .filter(row => !row.get('asistencia') || row.get('asistencia') === null)
       .map(row => ({
@@ -78,7 +81,7 @@ export default class GoogleSheetService {
   async confirmAttendanceByPhoneNumber(phoneNumber: string, clientName: string): Promise<{ chosenDate: string, chosenTime: string }> {
     await this.loadDoc();
   
-    // Seleccionamos la hoja correcta basada en el nombre del cliente
+    
     const sheet = this.doc.sheetsByIndex.find(sheet => 
       sheet.title.toLowerCase() === clientName.toLowerCase()
     );
@@ -91,11 +94,11 @@ export default class GoogleSheetService {
   
     for (const row of rows) {
       if (row.get('numero de whatsapp') === phoneNumber) {
-        // Actualizamos la asistencia en la columna correspondiente
+        
         row.set('asistencia', 'confirmada');
-        await row.save(); // Guardar cambios en la hoja
+        await row.save(); 
   
-        // Retornamos la información de la fecha y hora escogida
+        
         return {
           chosenDate: row.get('fecha escogida'),
           chosenTime: row.get('hora escogida'),
@@ -105,6 +108,52 @@ export default class GoogleSheetService {
   
     throw new Error(`Cliente con número ${phoneNumber} no encontrado`);
   }
+
+  async detectCountryAndConvertTime(whatsappNumber: string, chosenDate: string, chosenTime: string): Promise<{ country: string, convertedTime: string }> {
+    
+    if (!whatsappNumber.startsWith('+')) {
+      whatsappNumber = `+${whatsappNumber}`;
+    }
+  
+    
+    const phoneNumber = parsePhoneNumberFromString(whatsappNumber);
+  
+    if (!phoneNumber || !phoneNumber.isValid()) {
+      throw new Error(`Número de WhatsApp inválido: ${whatsappNumber}`);
+    }
+  
+    const country = phoneNumber.country;
+        
+    if (!country) {
+      throw new Error(`No se pudo detectar el país para el número: ${whatsappNumber}`);
+    }
+  
+
+    const formattedDate = moment(chosenDate, 'MM/DD/YYYY').format('YYYY-MM-DD');
+    const formattedTime = moment(chosenTime, 'HH:mm').format('HH:mm');
+    
+    const datetimeString = `${formattedDate} ${formattedTime}`;
+    
+    
+    const targetTimezone = timezonesByCountry[country] || 'UTC'; 
+  
+    
+    const argTimezone = 'America/Argentina/Buenos_Aires';
+    const datetimeInArgentina = moment.tz(datetimeString, 'YYYY-MM-DD HH:mm', argTimezone);
+    
+    
+    if (!datetimeInArgentina.isValid()) {
+      throw new Error(`Fecha y hora inválida: ${chosenDate} ${chosenTime}`);
+    }
+  
+    const convertedTime = datetimeInArgentina.clone().tz(targetTimezone).format('YYYY-MM-DD HH:mm');
+  
+    return {
+      country,
+      convertedTime,
+    };
+  }
+  
   
   
 }
