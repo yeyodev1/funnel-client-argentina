@@ -44,6 +44,13 @@ export default class GoogleSheetService {
     throw new Error(`Cliente ${clientName} no encontrado en la primera hoja.`);
   }
 
+  async getSheetNames(): Promise<string[]> {
+    await this.loadDoc();
+    const sheetNames = this.doc.sheetsByIndex.map(sheet => sheet.title);
+    console.log('getshettname: ', sheetNames)
+    return sheetNames;
+  }
+
   async findSheetByClientName(clientName: string): Promise<ClientInfo[]> {
     await this.loadDoc();
   
