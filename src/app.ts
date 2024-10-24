@@ -6,6 +6,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 
 import routerApi from './routes';
+import { scheduleSendMessages } from './tasks/cron';
 
 function createApp() {
   const app = express();
@@ -29,6 +30,8 @@ function createApp() {
   });
 
   routerApi(app, io);
+
+  scheduleSendMessages()
 
 
   return { app, server };
