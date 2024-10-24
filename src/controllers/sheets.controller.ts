@@ -68,12 +68,16 @@ export async function confirmAppointment(req: Request, res: Response): Promise<v
     const googleSheetService = new GoogleSheetService()
 
     const { chosenDate, chosenTime } = await googleSheetService.confirmAttendanceByPhoneNumber(phoneNumber, clientName)
-    
+
+    const { convertedTime } = await googleSheetService.detectCountryAndConvertTime(phoneNumber, chosenDate, chosenTime);
+
+    const [convertedDate, convertedHour] = convertedTime.split(' '); 
+
     res.status(HttpStatusCode.Ok).send({
       messages: [
         {
           type: 'to_user',
-          content: `Perfecto nos encontramos el próximo ${chosenDate} a las ${chosenTime}` 
+          content: `Perfecto nos encontramos el próximo ${convertedDate} a las ${convertedHour}` 
         },
         {
           type: 'to_user',
